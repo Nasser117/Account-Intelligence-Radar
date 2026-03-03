@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AVERROA — Account Intelligence Radar</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; connect-src 'self'; script-src 'self' 'unsafe-inline';">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --teal-deep:  #0d2333;
+  --teal:       #1a3a4a;
+  --teal-mid:   #254d63;
+  --teal-light: #2e6480;
+  --gold:       #c9a227;
+  --gold-light: #e0bb57;
+  --gold-muted: #8a6e1a;
+  --white:      #f5f2ec;
+  --off-white:  #e8e2d8;
+  --text-muted: #8a9aa8;
+  --red:        #c0392b;
+  --green:      #27ae60;
+  --border:     rgba(201,162,39,0.18);
+  --glass:      rgba(26,58,74,0.7);
+  --font-display:'Playfair Display',Georgia,serif;
+  --font-body:   'DM Sans',system-ui,sans-serif;
+  --font-mono:   'DM Mono','Courier New',monospace;
+  --radius:8px; --radius-lg:14px;
+  --shadow:0 4px 24px rgba(0,0,0,0.35);
+  --shadow-sm:0 2px 10px rgba(0,0,0,0.25);
+}
+
+html { scroll-behavior:smooth; }
+body {
+  font-family:var(--font-body);
+  background:var(--teal-deep);
+  color:var(--white);
+  min-height:100vh;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 10% 20%,rgba(201,162,39,0.05) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 80%,rgba(46,100,128,0.12) 0%,transparent 60%);
+  pointer-events:none; z-index:0;
+}
+
+.page { position:relative; z-index:1; max-width:940px; margin:0 auto; padding:0 24px 80px; }
+
+/* Header */
+header {
+  padding:52px 0 40px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:48px;
+  display:flex; align-items:flex-end; justify-content:space-between;
+  gap:24px; flex-wrap:wrap;
+}
+.logo-block { display:flex; align-items:center; gap:16px; }
+.logo-mark {
+  width:52px; height:52px;
+  background:var(--gold);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-display); font-size:20px; font-weight:700;
+  color:var(--teal-deep); letter-spacing:-1px; flex-shrink:0;
+  clip-path:polygon(0 0,85% 0,100% 15%,100% 100%,15% 100%,0 85%);
+}
+.logo-text h1 {
+  font-family:var(--font-display);
+  font-size:clamp(22px,4vw,32px); font-weight:700;
+  color:var(--white); letter-spacing:-0.5px; line-height:1.1;
+}
+.logo-text .tagline {
+  font-size:12px; font-weight:300; letter-spacing:2.5px;
+  text-transform:uppercase; color:var(--gold); margin-top:3px;
+}
+.env-status { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.env-badge {
+  font-size:11px; font-family:var(--font-mono);
+  padding:4px 10px; border-radius:20px; border:1px solid; letter-spacing:0.5px;
+}
+.env-badge.ok    { border-color:var(--green);color:var(--green);background:rgba(39,174,96,0.08); }
+.env-badge.warn  { border-color:var(--gold);color:var(--gold);background:rgba(201,162,39,0.08); }
+.env-badge.error { border-color:var(--red);color:var(--red);background:rgba(192,57,43,0.08); }
+
+/* Tabs */
+.mode-tabs {
+  display:grid; grid-template-columns:1fr 1fr; gap:2px;
+  background:var(--teal); border-radius:var(--radius);
+  padding:3px; margin-bottom:32px; border:1px solid var(--border);
+}
+.tab-btn {
+  padding:12px 20px; border:none; background:transparent;
+  color:var(--text-muted); font-family:var(--font-body);
+  font-size:14px; font-weight:500; letter-spacing:0.3px;
+  border-radius:calc(var(--radius) - 2px); cursor:pointer;
+  transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.tab-btn .tab-icon { font-size:16px; }
+.tab-btn:hover { color:var(--white); background:rgba(255,255,255,0.05); }
+.tab-btn.active { background:var(--gold); color:var(--teal-deep); font-weight:600; }
+
+/* Form */
+.form-panel {
+  background:var(--glass); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:32px;
+  backdrop-filter:blur(8px); margin-bottom:32px; box-shadow:var(--shadow);
+}
+.form-row { margin-bottom:22px; }
+.form-row:last-child { margin-bottom:0; }
+.form-row label {
+  display:block; font-size:12px; font-weight:500;
+  letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--gold); margin-bottom:8px;
+}
+.form-row input, .form-row select {
+  width:100%; background:rgba(13,35,51,0.7);
+  border:1px solid rgba(201,162,39,0.25); border-radius:var(--radius);
+  padding:12px 16px; color:var(--white); font-family:var(--font-body);
+  font-size:14px; outline:none; transition:border-color 0.2s,box-shadow 0.2s;
+}
+.form-row input::placeholder { color:var(--text-muted); }
+.form-row input:focus, .form-row select:focus {
+  border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,162,39,0.12);
+}
+.form-row select option { background:var(--teal-deep); }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+@media (max-width:540px) { .form-grid { grid-template-columns:1fr; } }
+
+/* ── Objective Checkboxes ── */
+.objective-section { margin-bottom:22px; }
+.objective-section-label {
+  font-size:12px; font-weight:500; letter-spacing:1.5px;
+  text-transform:uppercase; color:var(--gold); margin-bottom:12px; display:block;
+}
+.objective-grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:10px;
+  margin-bottom:12px;
+}
+.obj-checkbox-item {
+  display:flex; align-items:flex-start; gap:10px;
+  background:rgba(13,35,51,0.5); border:1px solid rgba(201,162,39,0.15);
+  border-radius:var(--radius); padding:10px 14px; cursor:pointer;
+  transition:border-color 0.2s,background 0.2s; user-select:none;
+}
+.obj-checkbox-item:hover { border-color:rgba(201,162,39,0.4); background:rgba(13,35,51,0.7); }
+.obj-checkbox-item.checked {
+  border-color:var(--gold); background:rgba(201,162,39,0.08);
+}
+.obj-checkbox-item input[type="checkbox"] { display:none; }
+.obj-check-box {
+  width:18px; height:18px; border-radius:4px; border:1.5px solid rgba(201,162,39,0.4);
+  flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  margin-top:1px; transition:all 0.15s; background:transparent;
+}
+.obj-checkbox-item.checked .obj-check-box {
+  background:var(--gold); border-color:var(--gold);
+}
+.obj-check-box::after {
+  content:''; width:10px; height:6px;
+  border-left:2px solid var(--teal-deep); border-bottom:2px solid var(--teal-deep);
+  transform:rotate(-45deg) translateY(-1px); opacity:0; transition:opacity 0.15s;
+}
+.obj-checkbox-item.checked .obj-check-box::after { opacity:1; }
+.obj-text { flex:1; }
+.obj-title { font-size:13px; font-weight:500; color:var(--white); line-height:1.3; }
+.obj-desc { font-size:11px; color:var(--text-muted); margin-top:2px; line-height:1.4; }
+
+.obj-actions {
+  display:flex; gap:10px; margin-bottom:4px;
+}
+.obj-action-btn {
+  font-size:11px; color:var(--text-muted); background:none; border:none;
+  cursor:pointer; padding:0; transition:color 0.15s; font-family:var(--font-body);
+  text-decoration:underline; text-underline-offset:2px;
+}
+.obj-action-btn:hover { color:var(--gold); }
+.obj-selected-count {
+  font-size:11px; color:var(--text-muted); font-family:var(--font-mono);
+  display:flex; align-items:center; gap:6px;
+}
+.obj-selected-count span { color:var(--gold); font-weight:600; }
+
+/* Submit */
+.btn-submit {
+  width:100%; padding:16px 32px; background:var(--gold);
+  color:var(--teal-deep); border:none; border-radius:var(--radius);
+  font-family:var(--font-body); font-size:15px; font-weight:600;
+  letter-spacing:0.5px; cursor:pointer; transition:all 0.2s;
+  display:flex; align-items:center; justify-content:center; gap:10px; margin-top:28px;
+}
+.btn-submit:hover { background:var(--gold-light); transform:translateY(-1px); box-shadow:0 6px 20px rgba(201,162,39,0.3); }
+.btn-submit:active { transform:translateY(0); }
+.btn-submit:disabled { opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
+.btn-submit .spinner {
+  width:18px; height:18px; border:2px solid rgba(13,35,51,0.3);
+  border-top-color:var(--teal-deep); border-radius:50%;
+  animation:spin 0.8s linear infinite; display:none;
+}
+.btn-submit.loading .spinner { display:block; }
+.btn-submit.loading .btn-label { opacity:0.7; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* Progress */
+.progress-panel {
+  background:var(--glass); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:24px 28px;
+  margin-bottom:28px; display:none; box-shadow:var(--shadow);
+}
+.progress-panel.visible { display:block; }
+.progress-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.progress-title {
+  font-family:var(--font-display); font-size:16px; font-weight:600;
+  color:var(--gold); display:flex; align-items:center; gap:10px;
+}
+.pulse-dot {
+  width:8px; height:8px; border-radius:50%; background:var(--gold);
+  animation:pulse-glow 1.2s ease-in-out infinite;
+}
+.pulse-dot.done  { background:var(--green); animation:none; }
+.pulse-dot.error { background:var(--red); animation:none; }
+@keyframes pulse-glow {
+  0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(201,162,39,0.6); }
+  50%      { opacity:0.6; box-shadow:0 0 0 6px rgba(201,162,39,0); }
+}
+.log-box {
+  background:rgba(13,35,51,0.8); border:1px solid rgba(255,255,255,0.06);
+  border-radius:var(--radius); padding:16px; height:280px;
+  overflow-y:auto; font-family:var(--font-mono); font-size:12px;
+  line-height:1.7; color:#9ab8c8; scroll-behavior:smooth;
+}
+.log-box::-webkit-scrollbar { width:4px; }
+.log-box::-webkit-scrollbar-track { background:transparent; }
+.log-box::-webkit-scrollbar-thumb { background:var(--teal-mid); border-radius:2px; }
+.log-line { display:flex; gap:8px; align-items:flex-start; }
+.log-line .ts { color:#4a6a7a; flex-shrink:0; font-size:10px; padding-top:2px; }
+.log-line .msg { flex:1; }
+.log-line.success .msg { color:#5dbb7a; }
+.log-line.error   .msg { color:#e07070; }
+.log-line.warn    .msg { color:#d4aa44; }
+.log-line.layer   .msg { color:var(--gold-light); font-weight:bold; }
+.log-line.info    .msg { color:#7ab8d4; }
+
+/* Results */
+.results-panel { display:none; }
+.results-panel.visible { display:block; }
+.results-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:24px; flex-wrap:wrap; gap:12px;
+}
+.results-title { font-family:var(--font-display); font-size:26px; font-weight:700; color:var(--white); }
+.results-meta { font-size:13px; color:var(--text-muted); margin-top:2px; }
+
+.company-card {
+  background:var(--glass); border:1px solid var(--border);
+  border-radius:var(--radius-lg); margin-bottom:20px;
+  overflow:hidden; box-shadow:var(--shadow-sm); transition:border-color 0.2s;
+}
+.company-card:hover { border-color:rgba(201,162,39,0.4); }
+.card-header {
+  padding:20px 24px 16px;
+  display:flex; justify-content:space-between; align-items:flex-start;
+  gap:16px; flex-wrap:wrap; cursor:pointer; user-select:none;
+  border-bottom:1px solid var(--border);
+}
+.card-company { font-family:var(--font-display); font-size:20px; font-weight:600; color:var(--white); line-height:1.2; }
+.card-hq { font-size:13px; color:var(--gold); margin-top:4px; display:flex; align-items:center; gap:6px; }
+.card-stats { display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
+.stat-chip { display:flex; flex-direction:column; align-items:center; min-width:52px; }
+.stat-chip .stat-num { font-family:var(--font-display); font-size:22px; font-weight:700; color:var(--gold); line-height:1; }
+.stat-chip .stat-lbl { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); margin-top:2px; }
+.card-toggle { font-size:18px; color:var(--text-muted); transition:transform 0.25s; flex-shrink:0; margin-top:6px; }
+.card-toggle.open { transform:rotate(180deg); }
+.card-body { padding:24px; display:none; }
+.card-body.open { display:block; }
+
+.section { margin-bottom:26px; }
+.section:last-child { margin-bottom:0; }
+.section-title {
+  font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase;
+  color:var(--gold-muted); margin-bottom:12px; padding-bottom:6px; border-bottom:1px solid var(--border);
+}
+.tag-list { display:flex; flex-wrap:wrap; gap:7px; }
+.tag {
+  font-size:12px; padding:4px 12px; border-radius:20px;
+  border:1px solid rgba(201,162,39,0.25); color:var(--off-white);
+  background:rgba(201,162,39,0.07); line-height:1.4;
+}
+.initiative-list,.exec-list { list-style:none; }
+.initiative-item {
+  padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.05);
+  font-size:13.5px; color:var(--off-white);
+  display:flex; gap:10px; align-items:flex-start; line-height:1.5;
+}
+.initiative-item::before { content:'→'; color:var(--gold); flex-shrink:0; margin-top:1px; }
+.initiative-item:last-child { border-bottom:none; }
+.exec-item {
+  padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05);
+  display:flex; gap:14px; align-items:center;
+}
+.exec-item:last-child { border-bottom:none; }
+.exec-avatar {
+  width:34px; height:34px; border-radius:50%; background:var(--teal-mid);
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:600; color:var(--gold); flex-shrink:0; border:1px solid var(--border);
+}
+.exec-name { font-size:14px; font-weight:500; color:var(--white); }
+.exec-title { font-size:12px; color:var(--text-muted); margin-top:1px; }
+.source-links { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+.source-link {
+  font-size:11px; font-family:var(--font-mono); color:var(--text-muted);
+  text-decoration:none; padding:4px 10px; border:1px solid rgba(255,255,255,0.1);
+  border-radius:4px; transition:all 0.15s;
+  max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.source-link:hover { border-color:var(--gold); color:var(--gold); }
+.download-bar {
+  display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;
+  padding-top:16px; border-top:1px solid var(--border);
+}
+.btn-dl {
+  padding:9px 18px; border-radius:var(--radius); font-size:13px;
+  font-weight:500; cursor:pointer; transition:all 0.18s;
+  display:flex; align-items:center; gap:7px; text-decoration:none;
+}
+.btn-dl.json { background:transparent; border:1px solid var(--gold); color:var(--gold); }
+.btn-dl.json:hover { background:rgba(201,162,39,0.12); }
+.btn-dl.md { background:transparent; border:1px solid var(--text-muted); color:var(--text-muted); }
+.btn-dl.md:hover { border-color:var(--white); color:var(--white); }
+
+.empty-state { text-align:center; padding:64px 24px; color:var(--text-muted); }
+.empty-icon { font-size:48px; margin-bottom:16px; opacity:0.4; }
+.empty-title { font-family:var(--font-display); font-size:20px; color:var(--white); margin-bottom:8px; }
+.empty-desc { font-size:14px; max-width:380px; margin:0 auto; }
+
+.error-banner {
+  background:rgba(192,57,43,0.12); border:1px solid rgba(192,57,43,0.35);
+  border-radius:var(--radius); padding:16px 20px; color:#e07070;
+  font-size:14px; display:none;
+}
+.error-banner.visible { display:block; }
+
+/* validation highlight */
+.field-error { border-color:var(--red) !important; box-shadow:0 0 0 3px rgba(192,57,43,0.15) !important; }
+.obj-error-msg { font-size:12px; color:#e07070; margin-top:6px; display:none; }
+.obj-error-msg.visible { display:block; }
+
+.divider { height:1px; background:var(--border); margin:40px 0; }
+footer { text-align:center; padding:32px 0 0; font-size:12px; color:var(--text-muted); letter-spacing:0.5px; border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="logo-block">
+      <div class="logo-mark">AV</div>
+      <div class="logo-text">
+        <h1>Account Intelligence Radar</h1>
+        <div class="tagline">Built by Experts. Delivered with Precision.</div>
+      </div>
+    </div>
+    <div class="env-status" id="envStatus">
+      <span class="env-badge warn">Checking APIs…</span>
+    </div>
+  </header>
+
+  <!-- Mode Tabs -->
+  <div class="mode-tabs" role="tablist">
+    <button class="tab-btn active" id="tabCompany" onclick="switchMode('company')" role="tab" aria-selected="true">
+      <span class="tab-icon">🏢</span> Company Mode
+    </button>
+    <button class="tab-btn" id="tabGeo" onclick="switchMode('geo')" role="tab" aria-selected="false">
+      <span class="tab-icon">🗺</span> Geography Mode
+    </button>
+  </div>
+
+  <!-- Form Panel -->
+  <div class="form-panel">
+
+    <!-- Company Fields -->
+    <div id="companyFields">
+      <div class="form-row">
+        <label for="companyName">Company Name</label>
+        <input type="text" id="companyName" placeholder="e.g. Saudi Aramco, Almarai, SABIC…"
+               autocomplete="off" maxlength="200" />
+      </div>
+    </div>
+
+    <!-- Geography Fields -->
+    <div id="geoFields" style="display:none;">
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="geoLocation">Location</label>
+          <input type="text" id="geoLocation" placeholder="e.g. Saudi Arabia, Riyadh…" maxlength="100" />
+        </div>
+        <div class="form-row">
+          <label for="geoSector">Sector</label>
+          <input type="text" id="geoSector" placeholder="e.g. energy, manufacturing…" maxlength="100" />
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="geoTopN">Companies to Profile</label>
+        <input type="number" id="geoTopN" value="3" min="1" max="10" style="max-width:100px;" />
+      </div>
+    </div>
+
+    <!-- Objective Checkboxes -->
+    <div class="objective-section">
+      <span class="objective-section-label">Intelligence Objectives</span>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+        <div class="obj-actions">
+          <button class="obj-action-btn" onclick="selectAllObjectives()">Select all</button>
+          <span style="color:var(--border);margin:0 4px;">|</span>
+          <button class="obj-action-btn" onclick="clearAllObjectives()">Clear all</button>
+        </div>
+        <div class="obj-selected-count"><span id="objCount">0</span> selected</div>
+      </div>
+      <div class="objective-grid" id="objectiveGrid"></div>
+      <div class="obj-error-msg" id="objError">Please select at least one intelligence objective.</div>
+    </div>
+
+    <div class="error-banner" id="formError"></div>
+
+    <button class="btn-submit" id="submitBtn" onclick="submitJob()">
+      <div class="spinner"></div>
+      <span class="btn-label">Run Intelligence Report</span>
+    </button>
+  </div>
+
+  <!-- Progress Panel -->
+  <div class="progress-panel" id="progressPanel">
+    <div class="progress-header">
+      <div class="progress-title">
+        <div class="pulse-dot" id="pulseDot"></div>
+        <span id="progressTitle">Running pipeline…</span>
+      </div>
+      <span style="font-size:12px;color:var(--text-muted)" id="progressJobId"></span>
+    </div>
+    <div class="log-box" id="logBox"></div>
+  </div>
+
+  <!-- Results Panel -->
+  <div class="results-panel" id="resultsPanel">
+    <div class="results-header">
+      <div>
+        <div class="results-title" id="resultsTitle">Intelligence Report</div>
+        <div class="results-meta" id="resultsMeta"></div>
+      </div>
+    </div>
+    <div id="cardsContainer"></div>
+  </div>
+
+  <div class="divider"></div>
+  <footer>AVERROA Account Intelligence Radar &nbsp;·&nbsp; Built by Experts. Delivered with Precision.</footer>
+</div>
+
+<script>
+// ── Objective definitions ──
+const OBJECTIVES = [
+  {
+    id: 'hq',
+    title: 'Company Identifiers',
+    desc: 'Name, headquarters location, legal entity',
+    prompt: 'Extract company name and headquarters location.'
+  },
+  {
+    id: 'bu',
+    title: 'Business Units',
+    desc: 'Divisions, subsidiaries, segments',
+    prompt: 'Extract all business units, divisions, and subsidiaries.'
+  },
+  {
+    id: 'products',
+    title: 'Products & Services',
+    desc: 'Product lines, brands, service categories',
+    prompt: 'Extract all products, services, and brand names.'
+  },
+  {
+    id: 'industries',
+    title: 'Target Industries',
+    desc: 'Sectors and customer segments served',
+    prompt: 'Extract target industries and customer segments served.'
+  },
+  {
+    id: 'executives',
+    title: 'Leadership Signals',
+    desc: 'Named executives and board members with titles',
+    prompt: 'Extract all named executives and board members with their exact titles (official sources only).'
+  },
+  {
+    id: 'digital',
+    title: 'Digital Transformation',
+    desc: 'ERP, AI, data platforms, tech investments',
+    prompt: 'Extract digital transformation initiatives including ERP systems, AI adoption, data platforms, and technology investments.'
+  },
+  {
+    id: 'supplychain',
+    title: 'Supply Chain & Operations',
+    desc: 'Logistics, manufacturing, sourcing initiatives',
+    prompt: 'Extract supply chain, manufacturing, and operational initiatives.'
+  },
+  {
+    id: 'expansion',
+    title: 'Expansions & Investments',
+    desc: 'Geographic expansion, M&A, capital investments',
+    prompt: 'Extract geographic expansions, acquisitions, joint ventures, and major capital investments with amounts and countries.'
+  },
+  {
+    id: 'sustainability',
+    title: 'Sustainability & ESG',
+    desc: 'Sustainability programs, certifications, CSR',
+    prompt: 'Extract sustainability programs, ESG commitments, ISO certifications, and CSR initiatives.'
+  },
+  {
+    id: 'partnerships',
+    title: 'Partnerships & JVs',
+    desc: 'Strategic alliances, MoUs, joint ventures',
+    prompt: 'Extract strategic partnerships, MoUs, and joint ventures.'
+  }
+];
+
+let selectedObjectives = new Set(['hq','bu','products','industries','executives','digital','expansion']);
+let currentMode = 'company';
+let currentJobId = null;
+let sseSource = null;
+let sseReconnectAttempts = 0;
+const MAX_SSE_RECONNECTS = 3;
+
+// ── Build objective checkboxes ──
+function buildObjectiveGrid() {
+  const grid = document.getElementById('objectiveGrid');
+  grid.innerHTML = '';
+  OBJECTIVES.forEach(obj => {
+    const item = document.createElement('div');
+    item.className = 'obj-checkbox-item' + (selectedObjectives.has(obj.id) ? ' checked' : '');
+    item.dataset.id = obj.id;
+    item.setAttribute('role', 'checkbox');
+    item.setAttribute('aria-checked', selectedObjectives.has(obj.id));
+    item.setAttribute('tabindex', '0');
+    item.innerHTML = `
+      <div class="obj-check-box"></div>
+      <div class="obj-text">
+        <div class="obj-title">${obj.title}</div>
+        <div class="obj-desc">${obj.desc}</div>
+      </div>`;
+    item.addEventListener('click', () => toggleObjective(obj.id));
+    item.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleObjective(obj.id); }});
+    grid.appendChild(item);
+  });
+  updateObjCount();
+}
+
+function toggleObjective(id) {
+  if (selectedObjectives.has(id)) {
+    selectedObjectives.delete(id);
+  } else {
+    selectedObjectives.add(id);
+  }
+  const item = document.querySelector(`.obj-checkbox-item[data-id="${id}"]`);
+  if (item) {
+    item.classList.toggle('checked', selectedObjectives.has(id));
+    item.setAttribute('aria-checked', selectedObjectives.has(id));
+  }
+  updateObjCount();
+  document.getElementById('objError').classList.remove('visible');
+}
+
+function selectAllObjectives() {
+  OBJECTIVES.forEach(o => selectedObjectives.add(o.id));
+  document.querySelectorAll('.obj-checkbox-item').forEach(el => {
+    el.classList.add('checked');
+    el.setAttribute('aria-checked', 'true');
+  });
+  updateObjCount();
+}
+
+function clearAllObjectives() {
+  selectedObjectives.clear();
+  document.querySelectorAll('.obj-checkbox-item').forEach(el => {
+    el.classList.remove('checked');
+    el.setAttribute('aria-checked', 'false');
+  });
+  updateObjCount();
+}
+
+function updateObjCount() {
+  document.getElementById('objCount').textContent = selectedObjectives.size;
+}
+
+function buildObjectivePrompt() {
+  const selected = OBJECTIVES.filter(o => selectedObjectives.has(o.id));
+  const prompts = selected.map(o => o.prompt).join(' ');
+  return `Extract the following business intelligence and return structured JSON. ${prompts}`;
+}
+
+// ── Input sanitization ──
+function sanitize(str) {
+  return str.replace(/[<>"'`]/g, '').trim();
+}
+
+function validateInputs() {
+  let valid = true;
+  hideError();
+
+  if (selectedObjectives.size === 0) {
+    document.getElementById('objError').classList.add('visible');
+    valid = false;
+  }
+
+  if (currentMode === 'company') {
+    const input = document.getElementById('companyName');
+    const val = sanitize(input.value);
+    if (!val) {
+      input.classList.add('field-error');
+      showError('Please enter a company name.');
+      valid = false;
+    } else {
+      input.classList.remove('field-error');
+      input.value = val;
+    }
+  } else {
+    const locInput = document.getElementById('geoLocation');
+    const secInput = document.getElementById('geoSector');
+    const loc = sanitize(locInput.value);
+    const sec = sanitize(secInput.value);
+    if (!loc) { locInput.classList.add('field-error'); valid = false; }
+    else { locInput.classList.remove('field-error'); locInput.value = loc; }
+    if (!sec) { secInput.classList.add('field-error'); valid = false; }
+    else { secInput.classList.remove('field-error'); secInput.value = sec; }
+    if (!loc || !sec) { showError('Location and sector are both required.'); }
+  }
+
+  return valid;
+}
+
+// ── Mode switch ──
+function switchMode(mode) {
+  currentMode = mode;
+  document.getElementById('tabCompany').classList.toggle('active', mode === 'company');
+  document.getElementById('tabGeo').classList.toggle('active', mode === 'geo');
+  document.getElementById('companyFields').style.display = mode === 'company' ? '' : 'none';
+  document.getElementById('geoFields').style.display     = mode === 'geo'     ? '' : 'none';
+  hideError();
+  // clear field errors on switch
+  document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
+}
+
+function showError(msg) {
+  const el = document.getElementById('formError');
+  el.textContent = '⚠ ' + msg;
+  el.classList.add('visible');
+}
+function hideError() {
+  document.getElementById('formError').classList.remove('visible');
+  document.getElementById('objError').classList.remove('visible');
+}
+
+// ── Env health check ──
+async function checkHealth() {
+  try {
+    const r = await fetch('/api/health');
+    const d = await r.json();
+    const el = document.getElementById('envStatus');
+    el.innerHTML = '';
+    const names = { SERPAPI_KEY:'SERP', GEMINI_API_KEY:'Gemini', GROQ_API_KEY:'Groq', FIRECRAWL_API_KEY:'Firecrawl' };
+    for (const [k, v] of Object.entries(d.env || {})) {
+      const badge = document.createElement('span');
+      badge.className = 'env-badge ' + (v ? 'ok' : 'error');
+      badge.textContent = names[k] || k;
+      el.appendChild(badge);
+    }
+  } catch {
+    document.getElementById('envStatus').innerHTML =
+      '<span class="env-badge warn">API server offline</span>';
+  }
+}
+
+// ── Submit ──
+async function submitJob() {
+  if (!validateInputs()) return;
+
+  const btn = document.getElementById('submitBtn');
+  const objective = buildObjectivePrompt();
+
+  let url, body;
+  if (currentMode === 'company') {
+    url  = '/api/run/company';
+    body = { company_name: sanitize(document.getElementById('companyName').value), objective };
+  } else {
+    const topN = Math.min(10, Math.max(1, parseInt(document.getElementById('geoTopN').value) || 3));
+    url  = '/api/run/geography';
+    body = {
+      location: sanitize(document.getElementById('geoLocation').value),
+      sector:   sanitize(document.getElementById('geoSector').value),
+      top_n:    topN,
+      objective
+    };
+  }
+
+  btn.disabled = true;
+  btn.classList.add('loading');
+  resetProgress();
+  resetResults();
+  document.getElementById('progressPanel').classList.add('visible');
+  document.getElementById('resultsPanel').classList.remove('visible');
+  sseReconnectAttempts = 0;
+
+  try {
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ detail: 'Server error' }));
+      throw new Error(err.detail || 'Server error');
+    }
+    const { job_id } = await resp.json();
+    currentJobId = job_id;
+    document.getElementById('progressJobId').textContent = `Job: ${job_id}`;
+    startStreaming(job_id);
+  } catch (e) {
+    showError('Failed to start job: ' + e.message);
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  }
+}
+
+// ── SSE streaming with reconnect ──
+function startStreaming(jobId) {
+  if (sseSource) { sseSource.close(); sseSource = null; }
+
+  sseSource = new EventSource(`/api/stream/${jobId}`);
+
+  sseSource.onmessage = (e) => {
+    sseReconnectAttempts = 0;
+    let data;
+    try { data = JSON.parse(e.data); } catch { return; }
+
+    if (data.heartbeat) return;
+    if (data.log !== undefined) appendLog(data.log);
+
+    if (data.status) {
+      sseSource.close(); sseSource = null;
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      const dot = document.getElementById('pulseDot');
+      if (data.status === 'done') {
+        dot.className = 'pulse-dot done';
+        document.getElementById('progressTitle').textContent = '✓ Complete';
+        loadAndRenderResults(jobId);
+      } else {
+        dot.className = 'pulse-dot error';
+        document.getElementById('progressTitle').textContent = '✗ Error — see log above';
+      }
+    }
+  };
+
+  sseSource.onerror = () => {
+    if (sseSource) { sseSource.close(); sseSource = null; }
+    if (sseReconnectAttempts < MAX_SSE_RECONNECTS) {
+      sseReconnectAttempts++;
+      appendLog(`Connection interrupted — reconnecting (attempt ${sseReconnectAttempts}/${MAX_SSE_RECONNECTS})…`, 'warn');
+      setTimeout(() => {
+        // Check if job is done before reconnecting
+        fetch(`/api/jobs/${jobId}`)
+          .then(r => r.json())
+          .then(job => {
+            if (job.status === 'done') {
+              document.getElementById('pulseDot').className = 'pulse-dot done';
+              document.getElementById('progressTitle').textContent = '✓ Complete';
+              document.getElementById('submitBtn').disabled = false;
+              document.getElementById('submitBtn').classList.remove('loading');
+              loadAndRenderResults(jobId);
+            } else if (job.status === 'error') {
+              document.getElementById('pulseDot').className = 'pulse-dot error';
+              document.getElementById('progressTitle').textContent = '✗ Error';
+              document.getElementById('submitBtn').disabled = false;
+              document.getElementById('submitBtn').classList.remove('loading');
+            } else {
+              startStreaming(jobId);
+            }
+          })
+          .catch(() => startStreaming(jobId));
+      }, 2000);
+    } else {
+      appendLog('Connection lost. Checking job status…', 'error');
+      document.getElementById('submitBtn').disabled = false;
+      document.getElementById('submitBtn').classList.remove('loading');
+      fetch(`/api/jobs/${jobId}`)
+        .then(r => r.json())
+        .then(job => {
+          if (job.status === 'done') {
+            document.getElementById('pulseDot').className = 'pulse-dot done';
+            document.getElementById('progressTitle').textContent = '✓ Complete (reconnected)';
+            loadAndRenderResults(jobId);
+          }
+        }).catch(() => {});
+    }
+  };
+}
+
+// ── Log rendering ──
+function appendLog(text, forceClass) {
+  const box = document.getElementById('logBox');
+  const now = new Date();
+  const ts  = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  let cls = forceClass || '';
+  if (!cls) {
+    if (text.includes('✅') || text.includes('Extraction complete')) cls = 'success';
+    else if (text.includes('❌') || text.includes('Error') || text.includes('error')) cls = 'error';
+    else if (text.includes('⚠️') || text.includes('429') || text.includes('402')) cls = 'warn';
+    else if (text.includes('LAYER') || text.includes('GEO MODE') || text.includes('OUTPUT')) cls = 'layer';
+    else if (text.includes('→') || text.includes('Poll')) cls = 'info';
+  }
+  const line = document.createElement('div');
+  line.className = `log-line ${cls}`;
+  line.innerHTML = `<span class="ts">${ts}</span><span class="msg">${escHtml(text)}</span>`;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Load + render results ──
+async function loadAndRenderResults(jobId) {
+  try {
+    const r = await fetch(`/api/jobs/${jobId}`);
+    if (!r.ok) throw new Error('Could not fetch job results');
+    const job = await r.json();
+
+    const panel     = document.getElementById('resultsPanel');
+    const container = document.getElementById('cardsContainer');
+    container.innerHTML = '';
+
+    if (!job.reports || job.reports.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <div class="empty-title">No reports generated</div>
+          <div class="empty-desc">Check the log above for details.</div>
+        </div>`;
+      panel.classList.add('visible');
+      document.getElementById('resultsTitle').textContent = 'No Results';
+      return;
+    }
+
+    const result = job.result;
+    const isSingle = currentMode === 'company';
+
+    if (isSingle && result) {
+      document.getElementById('resultsTitle').textContent = result.company_name || 'Intelligence Report';
+      document.getElementById('resultsMeta').textContent  = result.headquarters || '';
+      container.appendChild(buildCompanyCard(result, jobId, 0));
+    } else if (!isSingle && result && result.summary) {
+      document.getElementById('resultsTitle').textContent =
+        `${escHtml(result.location)} · ${escHtml(result.sector)}`;
+      document.getElementById('resultsMeta').textContent =
+        `${result.reports_generated} of ${result.companies_found} companies profiled`;
+
+      for (let i = 0; i < job.reports.length; i++) {
+        try {
+          const fr = await fetch(`/api/download/${jobId}/json?company_index=${i}`);
+          if (fr.ok) {
+            const fullData = await fr.json();
+            container.appendChild(buildCompanyCard(fullData, jobId, i));
+          } else {
+            const s = result.summary[i];
+            if (s) container.appendChild(buildSummaryCard(s, jobId, i));
+          }
+        } catch {
+          const s = result.summary[i];
+          if (s) container.appendChild(buildSummaryCard(s, jobId, i));
+        }
+      }
+    }
+
+    panel.classList.add('visible');
+  } catch (e) {
+    document.getElementById('cardsContainer').innerHTML =
+      `<div class="error-banner visible">Failed to load results: ${escHtml(e.message)}</div>`;
+    document.getElementById('resultsPanel').classList.add('visible');
+  }
+}
+
+// ── Card builder ──
+function buildCompanyCard(data, jobId, idx) {
+  const card = document.createElement('div');
+  card.className = 'company-card';
+  const bu = data.business_units        || [];
+  const ps = data.products_services     || [];
+  const ti = data.target_industries     || [];
+  const si = data.strategic_initiatives || [];
+  const ex = data.executives            || [];
+  const ev = data.evidence_links        || [];
+
+  card.innerHTML = `
+    <div class="card-header" onclick="toggleCard(this)">
+      <div class="card-title-group">
+        <div class="card-company">${escHtml(data.company_name || 'Unknown Company')}</div>
+        <div class="card-hq">📍 ${escHtml(data.headquarters || 'HQ unknown')}</div>
+      </div>
+      <div class="card-stats">
+        <div class="stat-chip"><div class="stat-num">${si.length}</div><div class="stat-lbl">Initiatives</div></div>
+        <div class="stat-chip"><div class="stat-num">${ex.length}</div><div class="stat-lbl">Executives</div></div>
+        <div class="stat-chip"><div class="stat-num">${ps.length}</div><div class="stat-lbl">Products</div></div>
+      </div>
+      <div class="card-toggle open">▼</div>
+    </div>
+    <div class="card-body open">
+      ${bu.length ? `<div class="section"><div class="section-title">Business Units</div><div class="tag-list">${bu.map(x=>`<span class="tag">${escHtml(x)}</span>`).join('')}</div></div>` : ''}
+      ${ps.length ? `<div class="section"><div class="section-title">Products & Services</div><div class="tag-list">${ps.map(x=>`<span class="tag">${escHtml(x)}</span>`).join('')}</div></div>` : ''}
+      ${ti.length ? `<div class="section"><div class="section-title">Target Industries</div><div class="tag-list">${ti.map(x=>`<span class="tag">${escHtml(x)}</span>`).join('')}</div></div>` : ''}
+      ${si.length ? `<div class="section"><div class="section-title">Strategic Initiatives</div><ul class="initiative-list">${si.map(item=>{const t=typeof item==='object'?(item.name||'')+(item.details?': '+item.details:''):item;return`<li class="initiative-item">${escHtml(String(t))}</li>`;}).join('')}</ul></div>` : ''}
+      ${ex.length ? `<div class="section"><div class="section-title">Leadership</div><ul class="exec-list">${ex.map(e=>{const name=typeof e==='object'?(e.name||'N/A'):e;const title=typeof e==='object'?(e.title||'N/A'):'';const initials=name.split(' ').map(w=>w[0]||'').join('').substring(0,2).toUpperCase();return`<li class="exec-item"><div class="exec-avatar">${escHtml(initials)}</div><div><div class="exec-name">${escHtml(name)}</div><div class="exec-title">${escHtml(title)}</div></div></li>`;}).join('')}</ul></div>` : ''}
+      ${ev.length ? `<div class="section"><div class="section-title">Evidence & Sources</div><div class="source-links">${ev.map(url=>`<a href="${escHtml(url)}" class="source-link" target="_blank" rel="noopener noreferrer">${escHtml(url)}</a>`).join('')}</div></div>` : ''}
+      <div class="download-bar">
+        <a class="btn-dl json" href="/api/download/${escHtml(jobId)}/json?company_index=${idx}" download>⬇ JSON</a>
+        <a class="btn-dl md"   href="/api/download/${escHtml(jobId)}/md?company_index=${idx}"   download>⬇ Markdown</a>
+      </div>
+    </div>`;
+  return card;
+}
+
+function buildSummaryCard(s, jobId, idx) {
+  const card = document.createElement('div');
+  card.className = 'company-card';
+  card.innerHTML = `
+    <div class="card-header" onclick="toggleCard(this)">
+      <div class="card-title-group">
+        <div class="card-company">${escHtml(s.company || 'Company')}</div>
+        <div class="card-hq">📍 ${escHtml(s.hq || 'N/A')}</div>
+      </div>
+      <div class="card-stats">
+        <div class="stat-chip"><div class="stat-num">${s.initiatives}</div><div class="stat-lbl">Initiatives</div></div>
+        <div class="stat-chip"><div class="stat-num">${s.executives}</div><div class="stat-lbl">Executives</div></div>
+        <div class="stat-chip"><div class="stat-num">${s.bus_units}</div><div class="stat-lbl">Units</div></div>
+      </div>
+      <div class="card-toggle open">▼</div>
+    </div>
+    <div class="card-body open">
+      <div class="download-bar">
+        <a class="btn-dl json" href="/api/download/${escHtml(jobId)}/json?company_index=${idx}" download>⬇ JSON</a>
+        <a class="btn-dl md"   href="/api/download/${escHtml(jobId)}/md?company_index=${idx}"   download>⬇ Markdown</a>
+      </div>
+    </div>`;
+  return card;
+}
+
+function toggleCard(header) {
+  const body   = header.nextElementSibling;
+  const toggle = header.querySelector('.card-toggle');
+  const open   = body.classList.toggle('open');
+  toggle.classList.toggle('open', open);
+}
+
+function resetProgress() {
+  document.getElementById('logBox').innerHTML = '';
+  document.getElementById('pulseDot').className = 'pulse-dot';
+  document.getElementById('progressTitle').textContent = 'Running pipeline…';
+  document.getElementById('progressJobId').textContent = '';
+}
+function resetResults() {
+  document.getElementById('cardsContainer').innerHTML = '';
+  document.getElementById('resultsTitle').textContent = 'Intelligence Report';
+  document.getElementById('resultsMeta').textContent  = '';
+}
+
+// ── Init ──
+window.addEventListener('DOMContentLoaded', () => {
+  buildObjectiveGrid();
+  checkHealth();
+});
+</script>
+</body>
+</html>

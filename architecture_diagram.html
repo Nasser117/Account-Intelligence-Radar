@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AVERROA — Architecture Diagram</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d2333;font-family:'Segoe UI',system-ui,sans-serif;color:#f5f2ec;padding:40px 24px;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+h1{font-size:18px;letter-spacing:2px;text-transform:uppercase;color:#c9a227;margin-bottom:6px}
+.subtitle{font-size:12px;color:#8a9aa8;margin-bottom:40px;letter-spacing:1px}
+svg{max-width:900px;width:100%;display:block}
+</style>
+</head>
+<body>
+<h1>Account Intelligence Radar</h1>
+<div class="subtitle">AVERROA · System Architecture</div>
+
+<svg viewBox="0 0 900 780" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr"  markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#c9a227"/></marker>
+    <marker id="arrg" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#27ae60"/></marker>
+    <marker id="arrb" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#2e6480"/></marker>
+  </defs>
+
+  <!-- ═══════════════════════════════════════════
+       ROW 1 — USER INPUTS
+  ═══════════════════════════════════════════ -->
+
+  <!-- Company Mode -->
+  <rect x="30"  y="24" width="170" height="68" rx="8" fill="#1a3a4a" stroke="#c9a227" stroke-width="1.5"/>
+  <text x="115" y="48"  text-anchor="middle" font-size="12" font-weight="700" fill="#c9a227">Company Mode</text>
+  <text x="115" y="64"  text-anchor="middle" font-size="10" fill="#8a9aa8">Company name +</text>
+  <text x="115" y="78"  text-anchor="middle" font-size="10" fill="#8a9aa8">Objective checkboxes</text>
+
+  <!-- Geography Mode -->
+  <rect x="220" y="24" width="170" height="68" rx="8" fill="#1a3a4a" stroke="#c9a227" stroke-width="1.5"/>
+  <text x="305" y="48"  text-anchor="middle" font-size="12" font-weight="700" fill="#c9a227">Geography Mode</text>
+  <text x="305" y="64"  text-anchor="middle" font-size="10" fill="#8a9aa8">Location + Sector +</text>
+  <text x="305" y="78"  text-anchor="middle" font-size="10" fill="#8a9aa8">Objective checkboxes</text>
+
+  <!-- Frontend -->
+  <rect x="430" y="24" width="440" height="68" rx="8" fill="#1a3a4a" stroke="#2e6480" stroke-width="1.5"/>
+  <text x="650" y="48"  text-anchor="middle" font-size="12" font-weight="700" fill="#f5f2ec">Frontend  (index.html)</text>
+  <text x="650" y="64"  text-anchor="middle" font-size="10" fill="#8a9aa8">Input validation · Sanitization · SSE log stream with reconnect</text>
+  <text x="650" y="78"  text-anchor="middle" font-size="10" fill="#8a9aa8">Result cards · JSON / MD download buttons</text>
+
+  <!-- arrows inputs → FastAPI -->
+  <line x1="115" y1="92"  x2="115" y2="152" stroke="#c9a227" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="305" y1="92"  x2="305" y2="152" stroke="#c9a227" stroke-width="1.5" marker-end="url(#arr)"/>
+  <!-- Frontend → FastAPI -->
+  <line x1="430" y1="58"  x2="420" y2="58"  stroke="#2e6480" stroke-width="1.5" marker-end="url(#arrb)"/>
+
+  <!-- ═══════════════════════════════════════════
+       ROW 2 — FASTAPI BACKEND
+  ═══════════════════════════════════════════ -->
+  <rect x="30"  y="152" width="380" height="72" rx="8" fill="#254d63" stroke="#c9a227" stroke-width="2"/>
+  <text x="220" y="177" text-anchor="middle" font-size="13" font-weight="700" fill="#c9a227">FastAPI Backend  (api.py)</text>
+  <text x="220" y="195" text-anchor="middle" font-size="10" fill="#f5f2ec">POST /api/run/company  ·  POST /api/run/geography</text>
+  <text x="220" y="211" text-anchor="middle" font-size="10" fill="#8a9aa8">GET /api/jobs/{id}  ·  GET /api/stream/{id} (SSE)  ·  GET /api/health</text>
+
+  <!-- FastAPI → Job Store -->
+  <line x1="220" y1="224" x2="220" y2="272" stroke="#c9a227" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ═══════════════════════════════════════════
+       ROW 3 — JOB STORE
+  ═══════════════════════════════════════════ -->
+  <rect x="100" y="272" width="240" height="52" rx="8" fill="#1a3a4a" stroke="#8a9aa8" stroke-width="1.5"/>
+  <text x="220" y="294" text-anchor="middle" font-size="12" font-weight="600" fill="#f5f2ec">In-Memory Job Store</text>
+  <text x="220" y="312" text-anchor="middle" font-size="10" fill="#8a9aa8">Thread per job · SSE log queue · Status polling</text>
+
+  <!-- Job Store → Pipeline label -->
+  <line x1="220" y1="324" x2="220" y2="364" stroke="#c9a227" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ═══════════════════════════════════════════
+       PIPELINE WRAPPER
+  ═══════════════════════════════════════════ -->
+  <rect x="20"  y="364" width="430" height="28" rx="6" fill="rgba(201,162,39,0.08)" stroke="#c9a227" stroke-width="1" stroke-dasharray="5 3"/>
+  <text x="235" y="382" text-anchor="middle" font-size="11" font-weight="700" fill="#c9a227" letter-spacing="2">THREE-LAYER PIPELINE  (main.py)</text>
+
+  <!-- ═══════════════════════════════════════════
+       LAYER 1
+  ═══════════════════════════════════════════ -->
+  <rect x="20"  y="404" width="430" height="62" rx="8" fill="#1a3a4a" stroke="#2e6480" stroke-width="1.5"/>
+  <text x="44"  y="424" font-size="10" font-weight="700" fill="#c9a227">LAYER 1 — DISCOVERY</text>
+  <text x="44"  y="441" font-size="10" fill="#f5f2ec">SerpAPI Google Search</text>
+  <text x="44"  y="457" font-size="10" fill="#8a9aa8">Returns structured JSON of organic results · Social media excluded</text>
+
+  <!-- SerpAPI box -->
+  <rect x="500" y="404" width="140" height="62" rx="8" fill="#0d2333" stroke="#2e6480" stroke-width="1.5"/>
+  <text x="570" y="428" text-anchor="middle" font-size="12" font-weight="600" fill="#f5f2ec">SerpAPI</text>
+  <text x="570" y="444" text-anchor="middle" font-size="10" fill="#8a9aa8">Google Search API</text>
+  <text x="570" y="458" text-anchor="middle" font-size="10" fill="#2e6480">serpapi.com</text>
+  <line x1="450" y1="435" x2="498" y2="435" stroke="#2e6480" stroke-width="1.5" marker-end="url(#arrb)"/>
+
+  <!-- L1 → L2 -->
+  <line x1="220" y1="466" x2="220" y2="506" stroke="#c9a227" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ═══════════════════════════════════════════
+       LAYER 2
+  ═══════════════════════════════════════════ -->
+  <rect x="20"  y="506" width="430" height="62" rx="8" fill="#1a3a4a" stroke="#2e6480" stroke-width="1.5"/>
+  <text x="44"  y="526" font-size="10" font-weight="700" fill="#c9a227">LAYER 2 — DECISION</text>
+  <text x="44"  y="543" font-size="10" fill="#f5f2ec">LLM URL Selector</text>
+  <text x="44"  y="559" font-size="10" fill="#8a9aa8">Gemini Flash 2.0  →  Groq Llama 3.3 70B  →  Organic fallback</text>
+
+  <!-- Gemini box -->
+  <rect x="500" y="500" width="140" height="34" rx="8" fill="#0d2333" stroke="#2e6480" stroke-width="1.5"/>
+  <text x="570" y="513" text-anchor="middle" font-size="11" font-weight="600" fill="#f5f2ec">Gemini Flash 2.0</text>
+  <text x="570" y="527" text-anchor="middle" font-size="10" fill="#8a9aa8">Free · 15 RPM</text>
+  <line x1="450" y1="518" x2="498" y2="518" stroke="#2e6480" stroke-width="1.5" marker-end="url(#arrb)"/>
+
+  <!-- Groq box -->
+  <rect x="500" y="542" width="140" height="34" rx="8" fill="#0d2333" stroke="#2e6480" stroke-width="1.5"/>
+  <text x="570" y="555" text-anchor="middle" font-size="11" font-weight="600" fill="#f5f2ec">Groq Llama 3.3 70B</text>
+  <text x="570" y="569" text-anchor="middle" font-size="10" fill="#8a9aa8">Free fallback · 30 RPM</text>
+  <line x1="450" y1="552" x2="498" y2="552" stroke="#2e6480" stroke-width="1.5" marker-end="url(#arrb)"/>
+
+  <!-- L2 → L3 -->
+  <line x1="220" y1="568" x2="220" y2="608" stroke="#c9a227" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ═══════════════════════════════════════════
+       LAYER 3
+  ═══════════════════════════════════════════ -->
+  <rect x="20"  y="608" width="430" height="62" rx="8" fill="#1a3a4a" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="44"  y="628" font-size="10" font-weight="700" fill="#27ae60">LAYER 3 — EXTRACTION</text>
+  <text x="44"  y="645" font-size="10" fill="#f5f2ec">Firecrawl Extract API  (async polling · schema-guided)</text>
+  <text x="44"  y="661" font-size="10" fill="#8a9aa8">Normalizes JSON · Saves reports/*.json + reports/*.md</text>
+
+  <!-- Firecrawl box -->
+  <rect x="500" y="608" width="140" height="62" rx="8" fill="#0d2333" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="570" y="632" text-anchor="middle" font-size="12" font-weight="600" fill="#f5f2ec">Firecrawl</text>
+  <text x="570" y="648" text-anchor="middle" font-size="10" fill="#8a9aa8">Extract API</text>
+  <text x="570" y="662" text-anchor="middle" font-size="10" fill="#27ae60">firecrawl.dev</text>
+  <line x1="450" y1="639" x2="498" y2="639" stroke="#27ae60" stroke-width="1.5" marker-end="url(#arrg)"/>
+
+  <!-- ═══════════════════════════════════════════
+       OUTPUT
+  ═══════════════════════════════════════════ -->
+  <line x1="220" y1="670" x2="220" y2="708" stroke="#27ae60" stroke-width="1.5" marker-end="url(#arrg)"/>
+
+  <rect x="100" y="708" width="240" height="52" rx="8" fill="rgba(39,174,96,0.08)" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="220" y="730" text-anchor="middle" font-size="12" font-weight="600" fill="#27ae60">Output  /reports/</text>
+  <text x="220" y="748" text-anchor="middle" font-size="10" fill="#8a9aa8">company.json  ·  company.md  ·  geo_index.md</text>
+
+  <!-- ═══════════════════════════════════════════
+       GOVERNANCE FOOTER
+  ═══════════════════════════════════════════ -->
+  <rect x="20" y="768" width="840" height="0" rx="4"/>
+  <text x="450" y="775" text-anchor="middle" font-size="9" fill="#4a6a7a">
+    🔒 robots.txt (RFC 9309)  ·  OWASP key masking  ·  No LinkedIn scraping  ·  Input sanitization  ·  Evidence links on every claim  ·  SSE reconnect logic
+  </text>
+</svg>
+
+</body>
+</html>
