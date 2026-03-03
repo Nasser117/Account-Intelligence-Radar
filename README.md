@@ -128,7 +128,7 @@ See [`architecture.html`](./architecture.html) for the full visual diagram.
 | `robots.txt` compliance (RFC 9309) | `urllib.robotparser` checks any direct URL; Firecrawl handles its own |
 | OWASP logging | API keys masked to last 4 chars; never logged in full |
 | Traceability by design | Every report includes `evidence_links` tying claims to URLs |
-| Failure modes handled | SerpAPI errors, Gemini 402, Groq 429, Firecrawl timeouts — all caught with clear messages |
+| Failure modes handled | SerpAPI errors, Gemini 429, Groq 429, Firecrawl timeouts — all caught with clear messages |
 | No LinkedIn scraping | Social media filtered before LLM and Firecrawl |
 | Secrets management | `.env` file; `.env.example` committed (no real keys) |
 
@@ -144,6 +144,7 @@ python -m pytest tests/ -v
 Tests cover:
 - URL filtering (social media / LinkedIn exclusion)
 - JSON parsing robustness (valid, empty, invalid, markdown-fenced)
+- Input sanitization (XSS and injection characters)
 - Report saving (file creation, content, overwrite behaviour)
 - OWASP key masking
 
@@ -160,12 +161,13 @@ account-intelligence-radar/
 ├── CONSULTANT_SUMMARY.md    # One-page consultant summary
 ├── tests/
 │   └── test_radar.py        # Unit tests
+├── architecture_diagram.html        # Visual system architecture diagram
 └── reports/                 # Generated reports (gitignored)
-    ├── saudi_aramco.json
-    ├── saudi_aramco.md
-    ├── lego.json
-    ├── lego.md
-    └── geo_saudi_arabia_energy.md
+    ├── example_1.json
+    ├── example_1.md
+    ├── example_2.json
+    ├── example_2.md
+    └── geo_example_3.md
 ```
 
 ---
