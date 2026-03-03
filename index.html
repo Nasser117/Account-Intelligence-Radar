@@ -424,6 +424,28 @@ footer { text-align:center; padding:32px 0 0; font-size:12px; color:var(--text-m
       </div>
       <div class="objective-grid" id="objectiveGrid"></div>
       <div class="obj-error-msg" id="objError">Please select at least one intelligence objective.</div>
+
+      <!-- Additional context -->
+      <div id="additionalContextRow" style="margin-top:12px;">
+        <div class="objective-toggle" id="ctxToggle" onclick="toggleContext()" style="font-size:12px;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none;width:fit-content;">
+          <span id="ctxArrow" style="font-size:10px;transition:transform 0.2s;display:inline-block;">▶</span>
+          Additional context <span style="color:var(--gold-muted);font-size:11px;">(optional)</span>
+        </div>
+        <div id="ctxField" style="display:none;margin-top:8px;">
+          <textarea id="additionalContext"
+            rows="2"
+            maxlength="400"
+            placeholder="e.g. Focus on their open government tenders, or extract sustainability KPIs specifically…"
+            style="width:100%;background:rgba(13,35,51,0.7);border:1px solid rgba(201,162,39,0.25);border-radius:8px;padding:12px 16px;color:#f5f2ec;font-family:'DM Sans',system-ui,sans-serif;font-size:13px;outline:none;resize:vertical;transition:border-color 0.2s,box-shadow 0.2s;line-height:1.5;"
+            onfocus="this.style.borderColor='#c9a227';this.style.boxShadow='0 0 0 3px rgba(201,162,39,0.12)'"
+            onblur="this.style.borderColor='rgba(201,162,39,0.25)';this.style.boxShadow='none'"
+          ></textarea>
+          <div style="display:flex;justify-content:space-between;margin-top:4px;">
+            <span style="font-size:11px;color:var(--text-muted);">Appended to the selected objectives above.</span>
+            <span id="ctxCount" style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text-muted);">0 / 400</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="error-banner" id="formError"></div>
@@ -594,10 +616,21 @@ function updateObjCount() {
   document.getElementById('objCount').textContent = selectedObjectives.size;
 }
 
+function toggleContext() {
+  const field = document.getElementById('ctxField');
+  const arrow = document.getElementById('ctxArrow');
+  const open  = field.style.display === 'none';
+  field.style.display = open ? '' : 'none';
+  arrow.style.transform = open ? 'rotate(90deg)' : 'rotate(0deg)';
+  if (open) document.getElementById('additionalContext').focus();
+}
+
 function buildObjectivePrompt() {
   const selected = OBJECTIVES.filter(o => selectedObjectives.has(o.id));
-  const prompts = selected.map(o => o.prompt).join(' ');
-  return `Extract the following business intelligence and return structured JSON. ${prompts}`;
+  const prompts  = selected.map(o => o.prompt).join(' ');
+  const extra    = sanitize(document.getElementById('additionalContext').value);
+  const base     = `Extract the following business intelligence and return structured JSON. ${prompts}`;
+  return extra ? `${base} Additional context: ${extra}` : base;
 }
 
 // ── Input sanitization ──
@@ -980,6 +1013,9 @@ function resetResults() {
 window.addEventListener('DOMContentLoaded', () => {
   buildObjectiveGrid();
   checkHealth();
+  document.getElementById('additionalContext').addEventListener('input', function() {
+    document.getElementById('ctxCount').textContent = `${this.value.length} / 400`;
+  });
 });
 </script>
 </body>
