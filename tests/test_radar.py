@@ -226,12 +226,12 @@ class TestReportSaving:
     def test_md_contains_company_name(self, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         main.save_report("Test Company", self.SAMPLE_DATA, self.OBJECTIVE)
-        assert "Test Company" in (tmp_path / "reports" / "test_company.md").read_text()
+        assert "Test Company" in (tmp_path / "reports" / "test_company.md").read_text(encoding="utf-8")
 
     def test_md_contains_evidence_links(self, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         main.save_report("Test Company", self.SAMPLE_DATA, self.OBJECTIVE)
-        assert "https://testcompany.com" in (tmp_path / "reports" / "test_company.md").read_text()
+        assert "https://testcompany.com" in (tmp_path / "reports" / "test_company.md").read_text(encoding="utf-8")
 
     def test_filename_spaces_replaced(self, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
@@ -243,20 +243,20 @@ class TestReportSaving:
         main.save_report("Test Company", self.SAMPLE_DATA, self.OBJECTIVE)
         modified = {**self.SAMPLE_DATA, "headquarters": "Dubai, UAE"}
         main.save_report("Test Company", modified, self.OBJECTIVE)
-        loaded = json.loads((tmp_path / "reports" / "test_company.json").read_text())
+        loaded = json.loads((tmp_path / "reports" / "test_company.json").read_text(encoding="utf-8"))
         assert loaded["headquarters"] == "Dubai, UAE"
 
     def test_empty_lists_render_not_found(self, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         sparse = {**self.SAMPLE_DATA, "business_units": [], "executives": []}
         main.save_report("Test Company", sparse, self.OBJECTIVE)
-        assert "_Not found_" in (tmp_path / "reports" / "test_company.md").read_text()
+        assert "_Not found_" in (tmp_path / "reports" / "test_company.md").read_text(encoding="utf-8")
 
     def test_error_field_rendered_in_md(self, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         with_error = {**self.SAMPLE_DATA, "error": "Firecrawl polling timeout"}
         main.save_report("Test Company", with_error, self.OBJECTIVE)
-        assert "Firecrawl polling timeout" in (tmp_path / "reports" / "test_company.md").read_text()
+        assert "Firecrawl polling timeout" in (tmp_path / "reports" / "test_company.md").read_text(encoding="utf-8")
 
 
 # ─────────────────────────────────────────────

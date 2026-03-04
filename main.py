@@ -35,16 +35,21 @@ from dotenv import load_dotenv
 # ─────────────────────────────────────────────
 load_dotenv()
 print(f"DEBUG: Current Key starts with: {os.getenv('SERPAPI_KEY')[:5]}")
-SERP_KEY      = os.getenv("SERPAPI_KEY")
-GEMINI_KEY    = os.getenv("GEMINI_API_KEY")   # Free — https://aistudio.google.com
-GROQ_KEY      = os.getenv("GROQ_API_KEY")     # Free fallback — https://console.groq.com
+SERP_KEY = os.getenv("SERPAPI_KEY")
+GEMINI_KEY = os.getenv("GEMINI_API_KEY")  # Free — https://aistudio.google.com
+GROQ_KEY = os.getenv("GROQ_API_KEY")  # Free fallback — https://console.groq.com
 FIRECRAWL_KEY = os.getenv("FIRECRAWL_API_KEY")
 
-USER_AGENT = "AverroaRadar/1.0 (+https://averroa.com/bot)"
+#  Firecrawl already respects robots.txt on its end.
+# USER_AGENT = "AverroaRadar/1.0 (+https://averroa.com/bot)"
+# Using * checks against the wildcard rules in robots.txt, which is what applies to any unspecified bot.
+# not using it at all will improve results
+USER_AGENT = "*"
+
 
 # Gemini free tier: 15 requests/minute → enforce minimum gap between calls
 _GEMINI_LAST_CALL: float = 0.0
-_GEMINI_MIN_GAP   = 4.5   # seconds → ~13 RPM (safe margin under 15)
+_GEMINI_MIN_GAP = 4.5  # seconds → ~13 RPM (safe margin under 15)
 
 
 def _mask(val: str | None) -> str:
@@ -57,9 +62,9 @@ def _mask(val: str | None) -> str:
 def _check_env() -> dict:
     """Print masked env status. Returns dict of key availability."""
     keys = {
-        "SERPAPI_KEY":       SERP_KEY,
-        "GEMINI_API_KEY":    GEMINI_KEY,
-        "GROQ_API_KEY":      GROQ_KEY,
+        "SERPAPI_KEY": SERP_KEY,
+        "GEMINI_API_KEY": GEMINI_KEY,
+        "GROQ_API_KEY": GROQ_KEY,
         "FIRECRAWL_API_KEY": FIRECRAWL_KEY,
     }
     print("\n[INIT] Checking environment variables:")
@@ -131,7 +136,8 @@ def search_companies(query: str, num_results: int = 10) -> list[dict]:
         print(f"  ✅ Received {len(results)} organic results.")
         extracted = [
             {"title": r.get("title"), "link": r.get("link")}
-            for r in results[:num_results] if r.get("link")
+            for r in results[:num_results]
+            if r.get("link")
         ]
         for i, r in enumerate(extracted, 1):
             print(f"    [{i}] {r['title']}")
@@ -169,7 +175,9 @@ def _gemini_throttle():
     _GEMINI_LAST_CALL = time.time()
 
 
-def _call_gemini(subject: str, search_results: list[dict], objective: str) -> list[str] | None:
+def _call_gemini(
+    subject: str, search_results: list[dict], objective: str
+) -> list[str] | None:
     """
     Primary LLM: Gemini Flash 2.0 — completely free, no credit card.
     Get key at: https://aistudio.google.com → API Keys
@@ -199,7 +207,10 @@ Results: {json.dumps(search_results)}"""
     )
     body = {
         "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"responseMimeType": "application/json", "temperature": 0.1},
+        "generationConfig": {
+            "responseMimeType": "application/json",
+            "temperature": 0.1,
+        },
     }
 
     try:
@@ -211,7 +222,9 @@ Results: {json.dumps(search_results)}"""
             print(f"    ❌ Gemini 400: {resp.text[:200]}")
             return None
         if resp.status_code == 403:
-            print("    ❌ Gemini 403: Invalid key — get one free at aistudio.google.com")
+            print(
+                "    ❌ Gemini 403: Invalid key — get one free at aistudio.google.com"
+            )
             return None
         if resp.status_code == 429:
             print("    ⚠️  Gemini 429: Still rate-limited — falling back to Groq.")
@@ -243,7 +256,9 @@ Results: {json.dumps(search_results)}"""
     return None
 
 
-def _call_groq(subject: str, search_results: list[dict], objective: str) -> list[str] | None:
+def _call_groq(
+    subject: str, search_results: list[dict], objective: str
+) -> list[str] | None:
     """Fallback LLM: Groq Llama 3.3 70B (free tier, 30 RPM)."""
     print("  → Attempting Groq fallback...")
     if not GROQ_KEY:
@@ -262,7 +277,10 @@ Return ONLY: {{"urls": ["url1", "url2"]}}
 
 Results: {json.dumps(search_results)}"""
 
-    headers = {"Authorization": f"Bearer {GROQ_KEY}", "Content-Type": "application/json"}
+    headers = {
+        "Authorization": f"Bearer {GROQ_KEY}",
+        "Content-Type": "application/json",
+    }
     body = {
         "model": "llama-3.3-70b-versatile",
         "messages": [{"role": "user", "content": prompt}],
@@ -273,7 +291,9 @@ Results: {json.dumps(search_results)}"""
         print("    → POST https://api.groq.com/openai/v1/chat/completions")
         resp = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
-            headers=headers, json=body, timeout=30
+            headers=headers,
+            json=body,
+            timeout=30,
         )
         print(f"    → HTTP status: {resp.status_code}")
 
@@ -302,7 +322,9 @@ Results: {json.dumps(search_results)}"""
     return None
 
 
-def select_best_urls(subject: str, search_results: list[dict], objective: str) -> list[str]:
+def select_best_urls(
+    subject: str, search_results: list[dict], objective: str
+) -> list[str]:
     """
     Layer 2: Decision — LLM selects best URLs.
     Chain: Gemini → Groq → top 2 organic results.
@@ -312,9 +334,20 @@ def select_best_urls(subject: str, search_results: list[dict], objective: str) -
     print(f"[LAYER 2 — DECISION] Selecting URLs for: '{subject}'")
     print(f"{'='*60}")
 
-    BLOCKED = ("linkedin.com", "instagram.com", "youtube.com", "twitter.com",
-               "facebook.com", "x.com", "tiktok.com")
-    filtered = [r for r in search_results if not any(d in (r.get("link") or "") for d in BLOCKED)]
+    BLOCKED = (
+        "linkedin.com",
+        "instagram.com",
+        "youtube.com",
+        "twitter.com",
+        "facebook.com",
+        "x.com",
+        "tiktok.com",
+    )
+    filtered = [
+        r
+        for r in search_results
+        if not any(d in (r.get("link") or "") for d in BLOCKED)
+    ]
     excluded = len(search_results) - len(filtered)
     if excluded:
         print(f"  ℹ️  Excluded {excluded} social/LinkedIn result(s) per policy.")
@@ -349,7 +382,7 @@ def _normalize_report(data: dict) -> dict:
         if isinstance(item, str):
             clean_si.append(item)
         elif isinstance(item, dict):
-            name    = item.get("name", "")
+            name = item.get("name", "")
             details = item.get("details", "")
             if name and details:
                 clean_si.append(f"{name}: {details}")
@@ -391,11 +424,16 @@ def extract_intelligence(urls: list[str], objective: str) -> dict:
         print("  ❌ No URLs provided.")
         return {"error": "No URLs to extract", "evidence_links": []}
 
+    # robots.txt guard — filter URLs disallowed for our user agent
+    urls = [u for u in urls if _robots_allowed(u)]
+    if not urls:
+        print("  ❌ All URLs blocked by robots.txt.")
+        return {"error": "All URLs blocked by robots.txt", "evidence_links": []}
+
     headers = {
         "Authorization": f"Bearer {FIRECRAWL_KEY}",
         "Content-Type": "application/json",
     }
-
     payload = {
         "urls": urls,
         "prompt": (
@@ -419,18 +457,18 @@ def extract_intelligence(urls: list[str], objective: str) -> dict:
         "schema": {
             "type": "object",
             "properties": {
-                "company_name":          {"type": "string"},
-                "headquarters":          {"type": "string"},
-                "business_units":        {"type": "array", "items": {"type": "string"}},
-                "products_services":     {"type": "array", "items": {"type": "string"}},
-                "target_industries":     {"type": "array", "items": {"type": "string"}},
+                "company_name": {"type": "string"},
+                "headquarters": {"type": "string"},
+                "business_units": {"type": "array", "items": {"type": "string"}},
+                "products_services": {"type": "array", "items": {"type": "string"}},
+                "target_industries": {"type": "array", "items": {"type": "string"}},
                 "strategic_initiatives": {"type": "array", "items": {"type": "string"}},
                 "executives": {
                     "type": "array",
                     "items": {
                         "type": "object",
                         "properties": {
-                            "name":  {"type": "string"},
+                            "name": {"type": "string"},
                             "title": {"type": "string"},
                         },
                     },
@@ -443,7 +481,9 @@ def extract_intelligence(urls: list[str], objective: str) -> dict:
         print("  → POST https://api.firecrawl.dev/v1/extract")
         resp = requests.post(
             "https://api.firecrawl.dev/v1/extract",
-            headers=headers, json=payload, timeout=30
+            headers=headers,
+            json=payload,
+            timeout=30,
         )
         print(f"  → HTTP status: {resp.status_code}")
 
@@ -455,7 +495,10 @@ def extract_intelligence(urls: list[str], objective: str) -> dict:
             return {"error": "Firecrawl invalid API key", "evidence_links": urls}
         if resp.status_code not in (200, 201, 202):
             print(f"  ❌ Firecrawl {resp.status_code}: {resp.text[:400]}")
-            return {"error": f"Firecrawl HTTP {resp.status_code}", "evidence_links": urls}
+            return {
+                "error": f"Firecrawl HTTP {resp.status_code}",
+                "evidence_links": urls,
+            }
 
         resp.raise_for_status()
         job_data = resp.json()
@@ -535,7 +578,11 @@ def _search_with_snippets(query: str, num_results: int = 10) -> list[dict]:
         if "error" in data:
             return []
         return [
-            {"title": r.get("title", ""), "link": r.get("link", ""), "snippet": r.get("snippet", "")}
+            {
+                "title": r.get("title", ""),
+                "link": r.get("link", ""),
+                "snippet": r.get("snippet", ""),
+            }
             for r in data.get("organic_results", [])[:num_results]
             if r.get("link")
         ]
@@ -543,7 +590,9 @@ def _search_with_snippets(query: str, num_results: int = 10) -> list[dict]:
         return []
 
 
-def discover_companies_in_geography(location: str, sector: str, top_n: int = 3) -> list[str]:
+def discover_companies_in_geography(
+    location: str, sector: str, top_n: int = 3
+) -> list[str]:
     """Run 3 targeted searches, combine with snippets, then ask LLM for top_n company names."""
     print(f"\n{'='*60}")
     print(f"[GEO MODE] Discovering top {top_n} '{sector}' companies in '{location}'")
@@ -604,11 +653,16 @@ Results:
                 )
                 body = {
                     "contents": [{"parts": [{"text": prompt}]}],
-                    "generationConfig": {"responseMimeType": "application/json", "temperature": 0.1},
+                    "generationConfig": {
+                        "responseMimeType": "application/json",
+                        "temperature": 0.1,
+                    },
                 }
                 resp = requests.post(api_url, json=body, timeout=30)
                 if resp.status_code == 200:
-                    raw = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+                    raw = resp.json()["candidates"][0]["content"]["parts"][0][
+                        "text"
+                    ].strip()
                     clean = raw.lstrip("```json").lstrip("```").rstrip("```").strip()
                     companies = json.loads(clean).get("companies", [])
                     if companies:
@@ -623,7 +677,10 @@ Results:
 
         if GROQ_KEY:
             try:
-                headers = {"Authorization": f"Bearer {GROQ_KEY}", "Content-Type": "application/json"}
+                headers = {
+                    "Authorization": f"Bearer {GROQ_KEY}",
+                    "Content-Type": "application/json",
+                }
                 body = {
                     "model": "llama-3.3-70b-versatile",
                     "messages": [{"role": "user", "content": prompt}],
@@ -631,7 +688,9 @@ Results:
                 }
                 resp = requests.post(
                     "https://api.groq.com/openai/v1/chat/completions",
-                    headers=headers, json=body, timeout=30
+                    headers=headers,
+                    json=body,
+                    timeout=30,
                 )
                 if resp.status_code == 200:
                     companies = json.loads(
@@ -650,9 +709,22 @@ Results:
     companies = _geo_llm(prompt)
 
     if not companies:
-        DIR_KW = ("top ", "list", "companies in", "zoominfo", "lusha", "coresignal",
-                  "techbehemoths", "db-ip", "medialandscapes", "wikipedia", "category:",
-                  "tasteatlas", "dnb.com", "clutch")
+        DIR_KW = (
+            "top ",
+            "list",
+            "companies in",
+            "zoominfo",
+            "lusha",
+            "coresignal",
+            "techbehemoths",
+            "db-ip",
+            "medialandscapes",
+            "wikipedia",
+            "category:",
+            "tasteatlas",
+            "dnb.com",
+            "clutch",
+        )
         candidates = []
         for r in unique:
             if not any(k in r["title"].lower() for k in DIR_KW):
@@ -667,13 +739,36 @@ Results:
 
     # Post-filter: remove well-known global multinationals that slipped through
     GLOBAL_MNC = {
-        "microsoft", "google", "amazon", "apple", "meta", "oracle", "sap",
-        "ibm", "cisco", "salesforce", "accenture", "deloitte", "pwc", "kpmg",
-        "mckinsey", "aws", "intel", "nvidia", "adobe", "dell", "hp", "lenovo",
+        "microsoft",
+        "google",
+        "amazon",
+        "apple",
+        "meta",
+        "oracle",
+        "sap",
+        "ibm",
+        "cisco",
+        "salesforce",
+        "accenture",
+        "deloitte",
+        "pwc",
+        "kpmg",
+        "mckinsey",
+        "aws",
+        "intel",
+        "nvidia",
+        "adobe",
+        "dell",
+        "hp",
+        "lenovo",
     }
     before = companies[:]
-    companies = [c for c in companies if c.lower().split()[0] not in GLOBAL_MNC
-                 and not any(mnc in c.lower() for mnc in GLOBAL_MNC)]
+    companies = [
+        c
+        for c in companies
+        if c.lower().split()[0] not in GLOBAL_MNC
+        and not any(mnc in c.lower() for mnc in GLOBAL_MNC)
+    ]
     removed = [c for c in before if c not in companies]
     if removed:
         print(f"  ℹ️  Filtered global multinationals: {removed}")
@@ -697,7 +792,7 @@ def save_report(company: str, data: dict, objective: str) -> tuple[str, str]:
     """Save JSON + Markdown to /reports. Returns (json_path, md_path)."""
     os.makedirs("reports", exist_ok=True)
     raw_name = company.strip().replace(" ", "_").lower()
-    filename  = "".join(c for c in raw_name if c.isalnum() or c in "_-")
+    filename = "".join(c for c in raw_name if c.isalnum() or c in "_-")
 
     json_path = f"reports/{filename}.json"
     with open(json_path, "w", encoding="utf-8") as f:
@@ -706,7 +801,9 @@ def save_report(company: str, data: dict, objective: str) -> tuple[str, str]:
 
     md_path = f"reports/{filename}.md"
     with open(md_path, "w", encoding="utf-8") as f:
-        f.write(f"# Account Intelligence Radar: {data.get('company_name', company)}\n\n")
+        f.write(
+            f"# Account Intelligence Radar: {data.get('company_name', company)}\n\n"
+        )
         f.write(f"> **Objective:** {objective}\n\n---\n\n")
 
         f.write("## Company Identifiers\n")
@@ -810,7 +907,7 @@ def main():
     print("  [B] Geography mode — discover companies by location + sector")
     mode = input("\nEnter A or B: ").strip().upper()
 
-    print(f"\nDefault objective:\n  \"{DEFAULT_OBJECTIVE}\"")
+    print(f'\nDefault objective:\n  "{DEFAULT_OBJECTIVE}"')
     custom = input("Press Enter to use default, or type your own objective: ").strip()
     objective = custom if custom else DEFAULT_OBJECTIVE
     print("  ✅ Objective set.")
@@ -827,9 +924,17 @@ def main():
             print("\n--- Report Preview ---", flush=True)
             print(f"  Company:     {report.get('company_name', target)}", flush=True)
             print(f"  HQ:          {report.get('headquarters', 'N/A')}", flush=True)
-            print(f"  Bus. Units:  {len(report.get('business_units', []))} found", flush=True)
-            print(f"  Initiatives: {len(report.get('strategic_initiatives', []))} found", flush=True)
-            print(f"  Executives:  {len(report.get('executives', []))} found", flush=True)
+            print(
+                f"  Bus. Units:  {len(report.get('business_units', []))} found",
+                flush=True,
+            )
+            print(
+                f"  Initiatives: {len(report.get('strategic_initiatives', []))} found",
+                flush=True,
+            )
+            print(
+                f"  Executives:  {len(report.get('executives', []))} found", flush=True
+            )
             if "error" in report:
                 print(f"  ⚠️  Error: {report['error']}", flush=True)
         else:
@@ -837,7 +942,7 @@ def main():
 
     elif mode == "B":
         location = input("\nEnter location (e.g. 'Saudi Arabia', 'Riyadh'): ").strip()
-        sector   = input("Enter sector (e.g. 'energy', 'manufacturing'): ").strip()
+        sector = input("Enter sector (e.g. 'energy', 'manufacturing'): ").strip()
         top_n_input = input("How many companies to profile? [default: 3]: ").strip()
         top_n = int(top_n_input) if top_n_input.isdigit() else 3
 
@@ -860,33 +965,46 @@ def main():
             print("-" * 40)
             report = run_company_pipeline(company, objective)
             if report:
-                summary.append({
-                    "company":     report.get("company_name", company),
-                    "hq":          report.get("headquarters", "N/A"),
-                    "bus_units":   len(report.get("business_units", [])),
-                    "initiatives": len(report.get("strategic_initiatives", [])),
-                    "executives":  len(report.get("executives", [])),
-                })
+                summary.append(
+                    {
+                        "company": report.get("company_name", company),
+                        "hq": report.get("headquarters", "N/A"),
+                        "bus_units": len(report.get("business_units", [])),
+                        "initiatives": len(report.get("strategic_initiatives", [])),
+                        "executives": len(report.get("executives", [])),
+                    }
+                )
 
         if summary:
             os.makedirs("reports", exist_ok=True)
-            slug = f"{location}_{sector}".replace(" ", "_").replace(",", "").lower()[:30]
+            slug = (
+                f"{location}_{sector}".replace(" ", "_").replace(",", "").lower()[:30]
+            )
             idx_path = f"reports/geo_{slug}.md"
             with open(idx_path, "w", encoding="utf-8") as f:
                 f.write(f"# Geography Intelligence Report\n\n")
                 f.write(f"**Location:** {location}  \n**Sector:** {sector}\n\n")
-                f.write(f"**Objective:** {objective}\n\n---\n\n## Companies Profiled\n\n")
+                f.write(
+                    f"**Objective:** {objective}\n\n---\n\n## Companies Profiled\n\n"
+                )
                 for s in summary:
                     f.write(f"### {s['company']}\n")
                     f.write(f"- **HQ:** {s['hq']}\n")
                     f.write(f"- Business Units: {s['bus_units']} found\n")
                     f.write(f"- Strategic Initiatives: {s['initiatives']} found\n")
                     f.write(f"- Executives: {s['executives']} found\n")
-                    safe = "".join(c for c in s['company'].replace(' ', '_').lower() if c.isalnum() or c in "_-")
+                    safe = "".join(
+                        c
+                        for c in s["company"].replace(" ", "_").lower()
+                        if c.isalnum() or c in "_-"
+                    )
                     f.write(f"- 📄 Full report: `{safe}.json`\n\n")
             print(f"\n  💾 Geography index: {idx_path}", flush=True)
 
-        print(f"\n✅ Geography mode complete. {len(summary)}/{len(companies)} reports generated.", flush=True)
+        print(
+            f"\n✅ Geography mode complete. {len(summary)}/{len(companies)} reports generated.",
+            flush=True,
+        )
 
     else:
         print("❌ Invalid mode. Please enter A or B.")

@@ -23,7 +23,7 @@ Output: reports/saudi_aramco.json + reports/saudi_aramco.md
 
 ### Prerequisites
 - Python 3.10+
-- API keys for: SerpAPI, Firecrawl, and at least one of Gemini or Groq
+- API keys for: SerpAPI, Firecrawl, and at least one of Gemini or Groq (preferably groq)
 
 ### Installation
 
@@ -118,8 +118,13 @@ Each report contains at minimum:
 
 ---
 
+
+
 ## Architecture
 See [`architecture.html`](./architecture.html) for the full visual diagram.
+
+
+
 
 ## Engineering Standards
 
