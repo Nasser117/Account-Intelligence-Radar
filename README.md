@@ -196,3 +196,7 @@ account-intelligence-radar/
 See `/reports/` for sample outputs:
 - `lego.json` / `lego.md` — global consumer brand (LEGO Group, Denmark)
 - `saudi_aramco.json` / `saudi_aramco.md` — KSA-based company (Saudi Aramco, Dhahran)
+
+
+## Demo
+▶ [Watch the demo video](./output[x].mp4)

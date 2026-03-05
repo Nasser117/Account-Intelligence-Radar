@@ -1,0 +1,87 @@
+{
+    "company_name": "BASF SE",
+    "headquarters": "Ludwigshafen, Germany",
+    "business_units": [
+        "Chemicals",
+        "Performance Products",
+        "Functional Materials & Solutions",
+        "Agricultural Solutions",
+        "Surface Technologies",
+        "Nutrition & Care",
+        "Plastics & Rubber",
+        "Coatings",
+        "Electronics & Electric",
+        "Energy & Resources",
+        "Home Care, Industrial & Institutional Cleaning",
+        "Personal Care & Hygiene",
+        "Pharmaceuticals",
+        "Packaging & Print",
+        "Textile, Leather & Footwear",
+        "Automotive & Transportation",
+        "Construction",
+        "Materials",
+        "Industrial Solutions",
+        "Furniture & Wood"
+    ],
+    "products_services": [
+        "Cavipor®",
+        "ChemCycling™",
+        "BASF Renewable Energy GmbH",
+        "BASF Venture Capital",
+        "Additives for plastic applications",
+        "Optical brightening agents",
+        "Dispersion production",
+        "Stoneville cotton seed varieties",
+        "Engenia herbicide",
+        "Autofroth foam systems",
+        "Circalo: Low Carbon Intensity Crops",
+        "Renewable energy certificates"
+    ],
+    "target_industries": [
+        "Agriculture",
+        "Automotive",
+        "Construction",
+        "Chemicals",
+        "Electronics",
+        "Energy",
+        "Food & Nutrition",
+        "Home Care",
+        "Industrial Cleaning",
+        "Personal Care",
+        "Pharmaceuticals",
+        "Plastics",
+        "Rubber",
+        "Textiles",
+        "Food and Nutrition"
+    ],
+    "strategic_initiatives": [
+        "$500M investment in expanded dispersion production in Durban, South Africa (2026)",
+        "ISO 9001:2015 certification achieved",
+        "Acquisition of Catexel's optical brightening agent business (2026)",
+        "Implementation of 'Winning Ways' strategy to enable green transformation",
+        "$500M investment in renewable energy certificates to support Scope 2 emissions reduction at U.S. sites (2026)",
+        "Operation Clean Sweep Blue Verification achieved at Wyandotte facility (2026)",
+        "Launch of biomass balance Autofroth foam systems for North American market (2026)",
+        "Launch of Circalo: Low Carbon Intensity Crops (2026)",
+        "EPA approval received for Engenia herbicide (2026)"
+    ],
+    "executives": [
+        {
+            "name": "Thomas Biegi",
+            "title": "Head of Corporate Communications and Government Relations"
+        },
+        {
+            "name": "Mark Garrett",
+            "title": "Proposed member of the Supervisory Board"
+        },
+        {
+            "name": "Sheri Biggs",
+            "title": "Congresswoman"
+        }
+    ],
+    "evidence_links": [
+        "https://www.basf.com/global/en",
+        "https://www.basf.com/us/en",
+        "https://www.basf.com/global/en/investor-relations"
+    ]
+}

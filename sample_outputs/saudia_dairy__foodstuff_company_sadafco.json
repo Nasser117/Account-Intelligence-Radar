@@ -1,0 +1,41 @@
+{
+    "company_name": "Saudia Dairy and Foodstuff Company (SADAFCO)",
+    "headquarters": "Saudi Arabia",
+    "business_units": [
+        "Manufacturing Facilities",
+        "Distribution Centers",
+        "Depots"
+    ],
+    "products_services": [
+        "Whole Milk",
+        "Low-Fat Milk",
+        "Skimmed Milk",
+        "Gold Milk",
+        "Junior Milk",
+        "Plant Based Dairy Alternatives",
+        "Ice Cream",
+        "Tomato Paste",
+        "Culinary Products",
+        "Snacks (Crispy)"
+    ],
+    "target_industries": [
+        "Dairy Products",
+        "Food Manufacturing",
+        "Consumer Goods"
+    ],
+    "strategic_initiatives": [
+        "Commitment to achieve carbon neutrality by 2060",
+        "Transition to zero-emission fleet by 2045",
+        "Expansion of on-site solar power with three plants live and nine more planned"
+    ],
+    "executives": [
+        {
+            "name": "N/A",
+            "title": "N/A"
+        }
+    ],
+    "evidence_links": [
+        "https://www.sadafco.com/",
+        "https://www.sadafco.com/investor-relations/"
+    ]
+}

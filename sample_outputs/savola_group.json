@@ -1,0 +1,49 @@
+{
+    "company_name": "Savola Group",
+    "headquarters": "Jeddah, Saudi Arabia",
+    "business_units": [
+        "Savola Foods",
+        "Panda Retail Company",
+        "Herfy Food Services",
+        "Al Kabeer Group"
+    ],
+    "products_services": [
+        "edible oils",
+        "sugar",
+        "pasta",
+        "nuts",
+        "spices",
+        "snacks",
+        "vegetable ghee",
+        "Afia",
+        "Shams",
+        "Alarabi",
+        "Rawabi",
+        "Janna",
+        "Alosra",
+        "Almaleka",
+        "Italiano",
+        "Bayara"
+    ],
+    "target_industries": [
+        "food",
+        "retail"
+    ],
+    "strategic_initiatives": [
+        "Investment in food and retail sectors across MENA region",
+        "49% stake in Herfy Food Services",
+        "Strategic stakes in Al Kabeer Group for frozen foods",
+        "Commitment to corporate social responsibility and sustainability initiatives"
+    ],
+    "executives": [
+        {
+            "name": "Sameh Mahmoud Hassan",
+            "title": "Group CEO"
+        }
+    ],
+    "evidence_links": [
+        "https://savola.com/en",
+        "https://savola.com/en/investors/financial-statements",
+        "https://savola.com/en/corporate-governance"
+    ]
+}
