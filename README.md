@@ -199,4 +199,7 @@ See `/reports/` for sample outputs:
 
 
 ## Demo
-▶ [Watch the demo video](./output[x].mp4)
+▶ [Watch the demo video : pathA](./output1.mp4)
+▶ [Watch the demo video : pathB1](./output2.mp4)
+▶ [Watch the demo video : pathB2](./output3.mp4)
+
